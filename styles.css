@@ -1,0 +1,331 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.container {
+    background: rgba(26, 26, 46, 0.95);
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+    max-width: 900px;
+    width: 100%;
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 30px;
+    animation: slideDown 0.6s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+h1 {
+    color: #FFD700;
+    font-size: 2.5em;
+    margin-bottom: 20px;
+    text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+    letter-spacing: 2px;
+}
+
+.stats {
+    display: flex;
+    justify-content: space-around;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.stat-item {
+    background: linear-gradient(135deg, rgba(0, 255, 0, 0.1) 0%, rgba(255, 20, 147, 0.1) 100%);
+    padding: 15px 25px;
+    border-radius: 10px;
+    border: 2px solid rgba(0, 255, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    min-width: 150px;
+    transition: all 0.3s ease;
+}
+
+.stat-item:hover {
+    transform: translateY(-5px);
+    border-color: rgba(0, 255, 0, 0.6);
+    box-shadow: 0 10px 25px rgba(0, 255, 0, 0.2);
+}
+
+.stat-item .label {
+    color: #00FF00;
+    font-size: 0.9em;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    opacity: 0.8;
+}
+
+.stat-item .value {
+    color: #FFD700;
+    font-size: 1.8em;
+    font-weight: bold;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+#gameCanvas {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 20px 0;
+    border: 3px solid rgba(0, 255, 0, 0.5);
+    border-radius: 10px;
+    box-shadow: 0 0 30px rgba(0, 255, 0, 0.3), inset 0 0 30px rgba(0, 255, 0, 0.1);
+    background: #1a1a2e;
+    transition: all 0.3s ease;
+}
+
+#gameCanvas:hover {
+    border-color: rgba(0, 255, 0, 0.8);
+    box-shadow: 0 0 40px rgba(0, 255, 0, 0.5), inset 0 0 40px rgba(0, 255, 0, 0.2);
+}
+
+.controls {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin: 30px 0;
+    flex-wrap: wrap;
+}
+
+.btn {
+    padding: 12px 30px;
+    font-size: 1em;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.3s ease;
+    text-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.btn:hover:not(:disabled) {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+}
+
+.btn:active:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #00FF00 0%, #00CC00 100%);
+    color: #1a1a2e;
+}
+
+.btn-primary:hover:not(:disabled) {
+    background: linear-gradient(135deg, #00FF44 0%, #00DD00 100%);
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+    color: #1a1a2e;
+}
+
+.btn-secondary:hover:not(:disabled) {
+    background: linear-gradient(135deg, #FFEE00 0%, #FFB800 100%);
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, #FF6B6B 0%, #FF4757 100%);
+    color: white;
+}
+
+.btn-danger:hover:not(:disabled) {
+    background: linear-gradient(135deg, #FF8888 0%, #FF6B78 100%);
+}
+
+.instructions {
+    background: rgba(0, 255, 0, 0.05);
+    border-left: 4px solid #00FF00;
+    padding: 25px;
+    border-radius: 10px;
+    margin-top: 30px;
+    animation: slideUp 0.6s ease 0.2s backwards;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.instructions h2 {
+    color: #00FF00;
+    margin-bottom: 15px;
+    font-size: 1.5em;
+    text-shadow: 0 0 10px rgba(0, 255, 0, 0.4);
+}
+
+.instructions ul {
+    list-style: none;
+    color: #E0E0E0;
+    line-height: 1.8;
+}
+
+.instructions li {
+    margin: 10px 0;
+    padding-left: 30px;
+    position: relative;
+    font-size: 0.95em;
+}
+
+.instructions li::before {
+    content: "▶";
+    position: absolute;
+    left: 0;
+    color: #FFD700;
+}
+
+.instructions strong {
+    color: #FFD700;
+    font-weight: bold;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    h1 {
+        font-size: 2em;
+    }
+
+    .container {
+        padding: 20px;
+    }
+
+    .stats {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .stat-item {
+        min-width: auto;
+    }
+
+    .controls {
+        flex-direction: column;
+    }
+
+    .btn {
+        width: 100%;
+    }
+
+    #gameCanvas {
+        margin: 15px 0;
+    }
+
+    .instructions {
+        padding: 15px;
+    }
+
+    .instructions h2 {
+        font-size: 1.2em;
+    }
+
+    .instructions li {
+        font-size: 0.85em;
+    }
+}
+
+@media (max-width: 480px) {
+    h1 {
+        font-size: 1.5em;
+    }
+
+    .container {
+        padding: 15px;
+        border-radius: 15px;
+    }
+
+    .stat-item {
+        padding: 10px 15px;
+    }
+
+    .stat-item .value {
+        font-size: 1.5em;
+    }
+
+    .instructions {
+        padding: 10px;
+    }
+
+    .instructions li {
+        padding-left: 20px;
+        font-size: 0.75em;
+    }
+}
+
+/* Animations */
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.8;
+    }
+}
+
+.stat-item .value {
+    animation: pulse 2s ease-in-out infinite;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(26, 26, 46, 0.5);
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(0, 255, 0, 0.5);
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 255, 0, 0.8);
+}
