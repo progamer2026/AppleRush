@@ -11,19 +11,22 @@ const ROWS = Math.floor(CANVAS_HEIGHT / GRID_SIZE);
 let snake = [{ x: 10, y: 10 }];
 let direction = { x: 1, y: 0 };
 let nextDirection = { x: 1, y: 0 };
-let apple = generateApple();
+let apple = generateFruit();
 let score = 0;
 let applesEaten = 0;
+let lives = 3;
 let highScore = localStorage.getItem('appleRushHighScore') || 0;
 let gameRunning = false;
 let gamePaused = false;
-let gameSpeed = 100; // milliseconds between moves
+let gameOver = false;
+let gameSpeed = 100;
 let gameLoopInterval = null;
 
 // DOM Elements
 const scoreDisplay = document.getElementById('score');
 const highScoreDisplay = document.getElementById('highScore');
 const applesEatenDisplay = document.getElementById('applesEaten');
+const livesDisplay = document.getElementById('lives');
 const startBtn = document.getElementById('startBtn');
 const pauseBtn = document.getElementById('pauseBtn');
 const resetBtn = document.getElementById('resetBtn');
@@ -31,6 +34,7 @@ const resetBtn = document.getElementById('resetBtn');
 // Initialize
 updateScore();
 highScoreDisplay.textContent = highScore;
+livesDisplay.textContent = lives;
 
 // Event Listeners
 startBtn.addEventListener('click', startGame);
@@ -38,30 +42,47 @@ pauseBtn.addEventListener('click', togglePause);
 resetBtn.addEventListener('click', resetGame);
 document.addEventListener('keydown', handleKeyPress);
 
-function generateApple() {
-    let newApple;
+// Get animal based on score
+function getAnimal() {
+    if (score < 100) return 'worm';
+    if (score < 200) return 'fish';
+    if (score < 300) return 'hippo';
+    return 'crocodile';
+}
+
+// Get fruit based on score
+function getFruit() {
+    if (score < 100) return 'apple';
+    if (score < 200) return 'orange';
+    if (score < 300) return 'strawberry';
+    return 'banana';
+}
+
+function generateFruit() {
+    let newFruit;
     let isOnSnake;
     
     do {
         isOnSnake = false;
-        newApple = {
+        newFruit = {
             x: Math.floor(Math.random() * COLS),
             y: Math.floor(Math.random() * ROWS)
         };
         
         for (let segment of snake) {
-            if (segment.x === newApple.x && segment.y === newApple.y) {
+            if (segment.x === newFruit.x && segment.y === newFruit.y) {
                 isOnSnake = true;
                 break;
             }
         }
     } while (isOnSnake);
     
-    return newApple;
+    return newFruit;
 }
 
 function startGame() {
     if (gameRunning) return;
+    if (gameOver) return; // Don't allow start if game is over
     
     gameRunning = true;
     gamePaused = false;
@@ -83,30 +104,36 @@ function update() {
         y: head.y + direction.y
     };
     
-    // Check collision with walls
+    // Check collision with walls or self
+    let collision = false;
+    
     if (newHead.x < 0 || newHead.x >= COLS || newHead.y < 0 || newHead.y >= ROWS) {
-        endGame();
-        return;
+        collision = true;
     }
     
     // Check collision with self
     for (let segment of snake) {
         if (newHead.x === segment.x && newHead.y === segment.y) {
-            endGame();
-            return;
+            collision = true;
+            break;
         }
+    }
+    
+    if (collision) {
+        loseLife();
+        return;
     }
     
     // Add new head
     snake.unshift(newHead);
     
-    // Check if apple eaten
+    // Check if fruit eaten
     if (newHead.x === apple.x && newHead.y === apple.y) {
         score += 10;
         applesEaten++;
-        apple = generateApple();
+        apple = generateFruit();
         
-        // Increase difficulty every 5 apples
+        // Increase difficulty every 5 fruits
         if (applesEaten % 5 === 0) {
             gameSpeed = Math.max(50, gameSpeed - 10);
             clearInterval(gameLoopInterval);
@@ -143,7 +170,21 @@ function draw() {
         ctx.stroke();
     }
     
-    // Draw snake
+    // Draw animal based on score
+    drawAnimal();
+    
+    // Draw fruit based on score
+    drawFruit();
+    
+    // Draw game over message if needed
+    if (gameOver) {
+        drawGameOver();
+    }
+}
+
+function drawAnimal() {
+    const animal = getAnimal();
+    
     for (let i = 0; i < snake.length; i++) {
         const segment = snake[i];
         const x = segment.x * GRID_SIZE;
@@ -151,85 +192,205 @@ function draw() {
         
         if (i === 0) {
             // Head
-            ctx.fillStyle = '#00FF00';
-            ctx.fillRect(x + 2, y + 2, GRID_SIZE - 4, GRID_SIZE - 4);
-            
-            // Eyes
-            ctx.fillStyle = 'white';
-            const eyeOffset = 3;
-            const eyeSize = 2;
-            
-            if (direction.x === 1) { // Right
-                ctx.fillRect(x + 12, y + 5, eyeSize, eyeSize);
-                ctx.fillRect(x + 12, y + 12, eyeSize, eyeSize);
-            } else if (direction.x === -1) { // Left
-                ctx.fillRect(x + 5, y + 5, eyeSize, eyeSize);
-                ctx.fillRect(x + 5, y + 12, eyeSize, eyeSize);
-            } else if (direction.y === -1) { // Up
-                ctx.fillRect(x + 5, y + 5, eyeSize, eyeSize);
-                ctx.fillRect(x + 12, y + 5, eyeSize, eyeSize);
-            } else if (direction.y === 1) { // Down
-                ctx.fillRect(x + 5, y + 12, eyeSize, eyeSize);
-                ctx.fillRect(x + 12, y + 12, eyeSize, eyeSize);
-            }
+            drawHead(x, y, animal);
         } else {
             // Body
-            ctx.fillStyle = '#00CC00';
-            ctx.fillRect(x + 2, y + 2, GRID_SIZE - 4, GRID_SIZE - 4);
+            drawBody(x, y, animal);
         }
     }
+}
+
+function drawHead(x, y, animal) {
+    switch(animal) {
+        case 'worm':
+            ctx.fillStyle = '#00FF00';
+            ctx.fillRect(x + 2, y + 2, GRID_SIZE - 4, GRID_SIZE - 4);
+            // Eyes
+            ctx.fillStyle = 'white';
+            ctx.fillRect(x + 5, y + 5, 2, 2);
+            ctx.fillRect(x + 12, y + 5, 2, 2);
+            break;
+        case 'fish':
+            ctx.fillStyle = '#FF69B4';
+            ctx.beginPath();
+            ctx.ellipse(x + GRID_SIZE / 2, y + GRID_SIZE / 2, GRID_SIZE / 2 - 2, GRID_SIZE / 3 - 2, 0, 0, Math.PI * 2);
+            ctx.fill();
+            // Eyes
+            ctx.fillStyle = 'white';
+            ctx.fillRect(x + 8, y + 6, 2, 2);
+            ctx.fillRect(x + 8, y + 12, 2, 2);
+            break;
+        case 'hippo':
+            ctx.fillStyle = '#9966CC';
+            ctx.beginPath();
+            ctx.arc(x + GRID_SIZE / 2, y + GRID_SIZE / 2, GRID_SIZE / 2 - 2, 0, Math.PI * 2);
+            ctx.fill();
+            // Eyes
+            ctx.fillStyle = 'white';
+            ctx.fillRect(x + 5, y + 5, 2, 2);
+            ctx.fillRect(x + 12, y + 5, 2, 2);
+            break;
+        case 'crocodile':
+            ctx.fillStyle = '#00AA00';
+            ctx.fillRect(x + 1, y + 5, GRID_SIZE - 2, GRID_SIZE - 10);
+            ctx.fillStyle = '#00CC00';
+            ctx.fillRect(x + 2, y + 4, GRID_SIZE - 4, 3);
+            // Eyes
+            ctx.fillStyle = 'white';
+            ctx.fillRect(x + 4, y + 3, 2, 2);
+            ctx.fillRect(x + 13, y + 3, 2, 2);
+            break;
+    }
+}
+
+function drawBody(x, y, animal) {
+    switch(animal) {
+        case 'worm':
+            ctx.fillStyle = '#00CC00';
+            ctx.fillRect(x + 2, y + 2, GRID_SIZE - 4, GRID_SIZE - 4);
+            break;
+        case 'fish':
+            ctx.fillStyle = '#FF1493';
+            ctx.beginPath();
+            ctx.ellipse(x + GRID_SIZE / 2, y + GRID_SIZE / 2, GRID_SIZE / 2 - 2, GRID_SIZE / 3 - 2, 0, 0, Math.PI * 2);
+            ctx.fill();
+            break;
+        case 'hippo':
+            ctx.fillStyle = '#8844BB';
+            ctx.beginPath();
+            ctx.arc(x + GRID_SIZE / 2, y + GRID_SIZE / 2, GRID_SIZE / 2 - 2, 0, Math.PI * 2);
+            ctx.fill();
+            break;
+        case 'crocodile':
+            ctx.fillStyle = '#009900';
+            ctx.fillRect(x + 2, y + 5, GRID_SIZE - 4, GRID_SIZE - 10);
+            break;
+    }
+}
+
+function drawFruit() {
+    const fruit = getFruit();
+    const fruitX = apple.x * GRID_SIZE;
+    const fruitY = apple.y * GRID_SIZE;
     
-    // Draw apple
-    const appleX = apple.x * GRID_SIZE;
-    const appleY = apple.y * GRID_SIZE;
+    switch(fruit) {
+        case 'apple':
+            // Apple body
+            ctx.fillStyle = '#FF0000';
+            ctx.beginPath();
+            ctx.arc(fruitX + GRID_SIZE / 2, fruitY + GRID_SIZE / 2, GRID_SIZE / 2 - 2, 0, Math.PI * 2);
+            ctx.fill();
+            // Stem
+            ctx.strokeStyle = '#8B4513';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(fruitX + GRID_SIZE / 2, fruitY + 2);
+            ctx.lineTo(fruitX + GRID_SIZE / 2, fruitY + 6);
+            ctx.stroke();
+            break;
+        case 'orange':
+            // Orange
+            ctx.fillStyle = '#FF8C00';
+            ctx.beginPath();
+            ctx.arc(fruitX + GRID_SIZE / 2, fruitY + GRID_SIZE / 2, GRID_SIZE / 2 - 2, 0, Math.PI * 2);
+            ctx.fill();
+            // Segments
+            ctx.strokeStyle = '#FF9500';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(fruitX + GRID_SIZE / 2, fruitY + 4);
+            ctx.lineTo(fruitX + GRID_SIZE / 2, fruitY + 16);
+            ctx.stroke();
+            break;
+        case 'strawberry':
+            // Strawberry body
+            ctx.fillStyle = '#FF1493';
+            ctx.beginPath();
+            ctx.ellipse(fruitX + GRID_SIZE / 2, fruitY + GRID_SIZE / 2 + 2, GRID_SIZE / 2 - 2, GRID_SIZE / 2 - 3, 0, 0, Math.PI * 2);
+            ctx.fill();
+            // Leaves
+            ctx.fillStyle = '#228B22';
+            for (let i = 0; i < 4; i++) {
+                const angle = (i * Math.PI / 2);
+                const lx = fruitX + GRID_SIZE / 2 + Math.cos(angle) * 5;
+                const ly = fruitY + 2 + Math.sin(angle) * 2;
+                ctx.beginPath();
+                ctx.ellipse(lx, ly, 2, 3, angle, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            break;
+        case 'banana':
+            // Banana
+            ctx.strokeStyle = '#FFD700';
+            ctx.lineWidth = 8;
+            ctx.beginPath();
+            ctx.arc(fruitX + GRID_SIZE / 2, fruitY + GRID_SIZE / 2, GRID_SIZE / 3, 0.2, Math.PI - 0.2);
+            ctx.stroke();
+            break;
+    }
+}
+
+function drawGameOver() {
+    // Overlay
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
     
-    // Apple body
+    // Game Over text
     ctx.fillStyle = '#FF0000';
-    ctx.beginPath();
-    ctx.arc(appleX + GRID_SIZE / 2, appleY + GRID_SIZE / 2, GRID_SIZE / 2 - 2, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.font = 'bold 80px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('GAME OVER', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 60);
     
-    // Apple stem
-    ctx.strokeStyle = '#8B4513';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(appleX + GRID_SIZE / 2, appleY + 2);
-    ctx.lineTo(appleX + GRID_SIZE / 2, appleY + 6);
-    ctx.stroke();
+    // Score text
+    ctx.fillStyle = '#FFD700';
+    ctx.font = '30px Arial';
+    ctx.fillText(`Final Score: ${score}`, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 20);
+    ctx.fillText(`High Score: ${highScore}`, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 60);
     
-    // Apple leaf
-    ctx.fillStyle = '#228B22';
-    ctx.beginPath();
-    ctx.ellipse(appleX + GRID_SIZE / 2 + 4, appleY + 4, 3, 2, Math.PI / 4, 0, Math.PI * 2);
-    ctx.fill();
+    // Restart instruction
+    ctx.fillStyle = '#00FF00';
+    ctx.font = '20px Arial';
+    ctx.fillText(`Press 'R' to Restart`, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 120);
 }
 
 function handleKeyPress(e) {
-    if (!gameRunning && e.code !== 'Space') return;
+    if (gameOver) {
+        if (e.key.toLowerCase() === 'r') {
+            resetGame();
+        }
+        return;
+    }
     
-    switch(e.code) {
-        case 'ArrowUp':
-        case 'KeyW':
+    if (!gameRunning && e.key !== 'Enter' && e.code !== 'Space') return;
+    
+    switch(e.key.toLowerCase()) {
+        case 'arrowup':
+        case 'w':
             if (direction.y === 0) nextDirection = { x: 0, y: -1 };
             e.preventDefault();
             break;
-        case 'ArrowDown':
-        case 'KeyS':
+        case 'arrowdown':
+        case 's':
             if (direction.y === 0) nextDirection = { x: 0, y: 1 };
             e.preventDefault();
             break;
-        case 'ArrowLeft':
-        case 'KeyA':
+        case 'arrowleft':
+        case 'a':
             if (direction.x === 0) nextDirection = { x: -1, y: 0 };
             e.preventDefault();
             break;
-        case 'ArrowRight':
-        case 'KeyD':
+        case 'arrowright':
+        case 'd':
             if (direction.x === 0) nextDirection = { x: 1, y: 0 };
             e.preventDefault();
             break;
-        case 'Space':
+        case ' ':
             togglePause();
+            e.preventDefault();
+            break;
+        case 'enter':
+            if (!gameRunning && !gameOver) startGame();
             e.preventDefault();
             break;
     }
@@ -239,15 +400,31 @@ function togglePause() {
     if (!gameRunning) return;
     
     gamePaused = !gamePaused;
-    pauseBtn.textContent = gamePaused ? 'Resume' : 'Pause';
+    pauseBtn.textContent = gamePaused ? 'Resume (Space)' : 'Pause (Space)';
+}
+
+function loseLife() {
+    lives--;
+    livesDisplay.textContent = lives;
+    
+    if (lives <= 0) {
+        endGame();
+    } else {
+        // Reset snake position but keep score
+        snake = [{ x: 10, y: 10 }];
+        direction = { x: 1, y: 0 };
+        nextDirection = { x: 1, y: 0 };
+        draw();
+    }
 }
 
 function endGame() {
     gameRunning = false;
+    gameOver = true;
     clearInterval(gameLoopInterval);
     startBtn.disabled = false;
     pauseBtn.disabled = true;
-    pauseBtn.textContent = 'Pause';
+    pauseBtn.textContent = 'Pause (Space)';
     
     if (score > highScore) {
         highScore = score;
@@ -255,27 +432,30 @@ function endGame() {
         highScoreDisplay.textContent = highScore;
     }
     
-    alert(`Game Over!\nScore: ${score}\nApples Eaten: ${applesEaten}\nHigh Score: ${highScore}`);
+    draw(); // Draw game over screen
 }
 
 function resetGame() {
     gameRunning = false;
     gamePaused = false;
+    gameOver = false;
     clearInterval(gameLoopInterval);
     
     snake = [{ x: 10, y: 10 }];
     direction = { x: 1, y: 0 };
     nextDirection = { x: 1, y: 0 };
-    apple = generateApple();
+    apple = generateFruit();
     score = 0;
     applesEaten = 0;
+    lives = 3;
     gameSpeed = 100;
     
     startBtn.disabled = false;
     pauseBtn.disabled = true;
-    pauseBtn.textContent = 'Pause';
+    pauseBtn.textContent = 'Pause (Space)';
     
     updateScore();
+    livesDisplay.textContent = lives;
     draw();
 }
 
