@@ -20,7 +20,11 @@
                     <span class="value" id="highScore">0</span>
                 </div>
                 <div class="stat-item">
-                    <span class="label">Apples Eaten:</span>
+                    <span class="label">Lives:</span>
+                    <span class="value" id="lives">3</span>
+                </div>
+                <div class="stat-item">
+                    <span class="label">Items Eaten:</span>
                     <span class="value" id="applesEaten">0</span>
                 </div>
             </div>
@@ -29,19 +33,24 @@
         <canvas id="gameCanvas" width="800" height="600"></canvas>
 
         <div class="controls">
-            <button id="startBtn" class="btn btn-primary">Start Game</button>
-            <button id="pauseBtn" class="btn btn-secondary" disabled>Pause</button>
-            <button id="resetBtn" class="btn btn-danger">Reset</button>
+            <button id="startBtn" class="btn btn-primary">Start Game (Enter)</button>
+            <button id="pauseBtn" class="btn btn-secondary" disabled>Pause (Space)</button>
+            <button id="resetBtn" class="btn btn-danger">Reset (R)</button>
         </div>
 
         <div class="instructions">
             <h2>How to Play:</h2>
             <ul>
-                <li>🎮 Use <strong>Arrow Keys</strong> or <strong>WASD</strong> to move the worm</li>
-                <li>🍎 Eat the red apples to grow longer and earn points</li>
+                <li>🎮 Use <strong>Arrow Keys</strong> or <strong>WASD</strong> to move</li>
+                <li>🍎 Eat fruits to grow longer and earn 10 points</li>
                 <li>⚠️ Don't hit the walls or yourself!</li>
+                <li>❤️ You have <strong>3 Lives</strong> - each collision costs one life</li>
+                <li>🦊 Animal changes: Worm → Fish → Hippo → Crocodile</li>
+                <li>🍊 Fruit changes: Apple → Orange → Strawberry → Banana</li>
+                <li>📊 Animals & fruits upgrade every 100 points!</li>
                 <li>⏸️ Press <strong>Space</strong> to pause/resume</li>
-                <li>🚀 The game gets harder as you eat more apples</li>
+                <li>🚀 Game gets harder as you score more!</li>
+                <li>🔄 Game Over when lives reach 0 - Press <strong>R</strong> to restart!</li>
             </ul>
         </div>
     </div>
